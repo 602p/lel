@@ -38,6 +38,27 @@ lvalue* eval(lvalue* code, lvalue* scope){
 		return nil;
 	}
 
+	if(EQ_BUILTIN(func, "cons")){
+		if(nr_args==2){
+			lvalue* arg1 = eval(list_get(code, 1), scope);
+			lvalue* arg2 = eval(list_get(code, 2), scope);
+			return CONS(arg1, arg2);
+		}
+		eerror("Invalid invocation to cons");
+		return nil;
+	}
+
+	if(EQ_BUILTIN(func, "let")){
+		if(nr_args==3){
+			lvalue* name = list_get(code, 1);
+			lvalue* val  = eval(list_get(code, 2), scope);
+			lvalue* body = eval(list_get(code, 3), scope);
+			return eval(body, CONS(CONS(name, val), scope));
+		}
+		eerror("Invalid invocation to cons");
+		return nil;
+	}
+
 	if(EQ_BUILTIN(func, "quote")){
 		if(nr_args==1) return list_get(code, 1);
 		eerror("Invalid invocation to quote");
@@ -71,25 +92,14 @@ lvalue* eval(lvalue* code, lvalue* scope){
 	}
 
 
-	if(list_len(func)==3){
-		lvalue* bind_name = list_get(func, 0);
+	if(list_len(func)==2){
 		lvalue* func_code = list_get(func, 1);
-		lvalue* closure_scope = list_get(func, 2);
+		lvalue* closure_scope = list_get(func, 0);
 
-		printf("bind_name: "), print_lvalue(bind_name, builtins), printf("\n");
 		printf("func_code: "), print_lvalue(func_code, builtins), printf("\n");
 		printf("closure_scope: "), print_lvalue(closure_scope, builtins), printf("\n");
 
-		lvalue* args = nil;
-		lvalue* hd = code->v.cons.rhs;
-		while(hd!=nil){
-			args=CONS(hd->v.cons.lhs, args);
-			hd=hd->v.cons.rhs;
-		}
-		
-		printf("args: "), print_lvalue(args, builtins), printf("\n");
-
-		return eval(func_code, CONS(CONS(bind_name, args), closure_scope));
+		return eval(func_code, CONS(CONS(STR("$args"), code->v.cons.rhs), closure_scope));
 	}
 
 	eerror("Function was not a function");
@@ -105,13 +115,25 @@ void print_string(lvalue* s){
 	}
 }
 
+bool is_list(lvalue* v){
+	return v==nil || (!v->scalar && is_list(v->v.cons.rhs));
+}
+
 void print_lvalue(lvalue* v, lvalue* bindings){
 	lvalue_result res = assoclist_get(bindings, v);
 	if(v==nil) printf("()");
 	else if(res.success) print_string(v);
 	else if(v->scalar) printf("%i", v->v.scalar);
-	else{
+	else if(is_list(v)){
 		printf("(");
+		while(v!=nil){
+			print_lvalue(v->v.cons.lhs, bindings);
+			if(v->v.cons.rhs!=nil) printf(" ");
+			v=v->v.cons.rhs;
+		}
+		printf(")");
+	}else{
+		printf("(cons ");
 		print_lvalue(v->v.cons.lhs, bindings);
 		printf(" ");
 		print_lvalue(v->v.cons.rhs, bindings);

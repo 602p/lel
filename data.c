@@ -82,8 +82,9 @@ bool lvalue_eq_ascii(lvalue* l, char* str){
 }
 
 lvalue_result assoclist_get(lvalue* list, lvalue* key){
-	if(list==nil) return FAILURE;
-	if(list->scalar){
+	if(list==nil){
+		return FAILURE;
+	}else if(list->scalar){
 		return FAILURE;
 	}else{
 		lvalue* head = list->v.cons.lhs;
