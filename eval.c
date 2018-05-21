@@ -118,6 +118,12 @@ lvalue* eval(lvalue* code, lvalue* scope){
 		return nil;
 	}
 
+	if(EQ_BUILTIN(func, "hyperquote")){
+		if(nr_args==1) return code;
+		eerror("Invalid invocation to hyperquote");
+		return nil;
+	}
+
 	if(EQ_BUILTIN(func, "print")){
 		if(nr_args==1){
 			lvalue* v = eval(list_get(code, 1), scope);
@@ -165,18 +171,20 @@ lvalue* eval(lvalue* code, lvalue* scope){
 	}
 
 
-	if(list_len(func)==2){
+	if(list_len(func)==2 && EQ_BUILTIN(list_get(func, 0), "hyperquote")){
 		lvalue* func_code = list_get(func, 1);
-		lvalue* closure_scope = list_get(func, 0);
 
 		printf("$args: "), print_lvalue(code->v.cons.rhs, builtins), printf("\n");
-		printf("func_code: "), print_lvalue(func_code, builtins), printf("\n");
+		printf("code: "), print_lvalue(func_code, builtins), printf("\n");
+		lvalue* f_scope = CONS(CONS(STR("$args"), code->v.cons.rhs), scope);
+		printf("f_scope: \n");
+		print_assoclist(f_scope);
 
-		closure_scope=CONS(CONS(STR("$parent"), scope), CONS(CONS(STR("$args"), code->v.cons.rhs), closure_scope));
-		lvalue* res = eval(func_code, closure_scope);
-		printf("res: "), print_lvalue(res, builtins), printf("\n");
+
+		lvalue* res = eval(func_code, f_scope);
+		printf("res: "), print_lvalue(res, f_scope), printf("\n");
 		lvalue* term = eval(res, scope);
-		printf("term: "), print_lvalue(term, builtins), printf("\n");
+		printf("term: "), print_lvalue(term, scope), printf("\n");
 
 		return term;
 	}
@@ -212,11 +220,16 @@ void print_lvalue_cd(lvalue* v, lvalue* bindings, cyclelink* prev_cyclelink){
 	cyclelink cl = {v, prev_cyclelink};
 	lvalue_result res = assoclist_get(bindings, v);
 	if(v==nil) printf("()");
+	if(v==builtins) printf("{builtins}");
 	else if(res.success) print_string(v);
 	else if(v->scalar) printf("%i", v->v.scalar);
 	else if(is_list(v)){
 		printf("(");
 		while(v!=nil){
+			if(v==builtins){
+				printf(" ...{builtins})");
+				return;
+			}
 			if (!is_cyclical(v->v.cons.lhs, &cl)) print_lvalue_cd(v->v.cons.lhs, bindings, &cl);
 			else printf("<cycle>");
 			if(v->v.cons.rhs!=nil) printf(" ");
@@ -224,7 +237,7 @@ void print_lvalue_cd(lvalue* v, lvalue* bindings, cyclelink* prev_cyclelink){
 		}
 		printf(")");
 	}else{
-		printf("(cons ");
+		printf("(^cons ");
 		if (!is_cyclical(v->v.cons.lhs, &cl)) print_lvalue_cd(v->v.cons.lhs, bindings, &cl);
 		else printf("<cycle>");
 		printf(" ");
@@ -236,4 +249,21 @@ void print_lvalue_cd(lvalue* v, lvalue* bindings, cyclelink* prev_cyclelink){
 
 void print_lvalue(lvalue* v, lvalue* bindings){
 	print_lvalue_cd(v, bindings, NULL);
+}
+
+void print_assoclist(lvalue* list){
+	for(lvalue* cell = list; !cell->scalar; cell=cell->v.cons.rhs){
+		if(cell==builtins){
+			printf("\t-->{builtins}\n");
+			return;
+		}
+		if(!cell->v.cons.lhs->scalar){
+			lvalue* name = cell->v.cons.lhs->v.cons.lhs;
+			lvalue* data = cell->v.cons.lhs->v.cons.rhs;
+			printf("\tEntry '"), print_lvalue(name, list);
+			printf("' = "), print_lvalue(data, list), printf("\n");
+		}else{
+			printf("\t<Malformed Entry: "), print_lvalue(cell->v.cons.lhs, list), printf(">\n");
+		}
+	}
 }

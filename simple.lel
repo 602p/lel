@@ -1,0 +1,13 @@
+(let add1
+	(let captured-scope (scope)
+	(let add1-code (quote (quote (cons quote (cons
+		(let x (eval (lhs $args) $parent)
+			(add x 1))
+	()))))
+	(let quoted-captured-scope (cons quote (cons captured-scope ()))
+	(let env-with-args (cons cons (cons (quote (cons (quote $args) $args)) (cons quoted-captured-scope ())))
+	(let complete-env (cons cons (cons (quote (cons (quote $parent) (scope))) (cons env-with-args ())))
+	(let fn-body (cons eval (cons add1-code (cons complete-env ())))
+		(cons hyperquote (cons fn-body ()))))))))
+	
+(let z 5 (add1 z)))
