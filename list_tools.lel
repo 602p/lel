@@ -1,0 +1,26 @@
+(letrec len
+	(cons (scope) (quote ((cons quote (cons
+		(let lst (eval (lhs $args) $parent)
+			(if (eq lst ()) 0 (add 1 (len (rhs lst))))
+		)
+	nil)))))
+	(letrec nth
+		(cons (scope) (quote ((cons quote (cons
+			(let x (eval (lhs $args) $parent)
+				(let lst (eval (lhs (rhs $args)) $parent)
+					(if (eq x 0) (lhs lst) (nth (sub x 1) (rhs lst)))
+				)
+			)
+		nil)))))
+		(letrec map
+			(cons (scope) (quote ((cons quote (cons
+				(let func (eval (lhs $args) $parent)
+					(let lst (eval (lhs (rhs $args)) $parent)
+						(if (eq lst ()) () (cons (func (lhs lst)) (map func (rhs lst))))
+					)
+				)
+			nil)))))
+			(scope)
+		)
+	)
+)

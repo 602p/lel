@@ -9,47 +9,55 @@ lvalue* builtins;
 gc_cell* gc_root;
 
 int main(){
-	char* code = "(foo (bar baz) quux oof)";
-	char** tokens = tokenize(code);
-
-	for(int i=0; tokens[i]!=NULL; i++){
-		printf("'%s'\n", tokens[i]);
-	}
-
-	return 0;
-}
-
-int test_eval(){
 	nil = SCALAR(-9999);
 	builtins = LIST(
 		CONS(STR("nil"), nil),
-		CONS(STR("neg"), SCALAR(-1000)),
-		CONS(STR("add"), SCALAR(-1001)),
-		CONS(STR("quote"), SCALAR(-1002)),
-		CONS(STR("eval"), SCALAR(-1003)),
-		CONS(STR("scope"), SCALAR(-1007)),
-		CONS(STR("cons"), SCALAR(-1004)),
-		CONS(STR("lhs"), SCALAR(-1005)),
-		CONS(STR("rhs"), SCALAR(-1006)),
-		CONS(STR("let"), SCALAR(-1008)),
-		CONS(STR("x"), SCALAR(-1)),
-		CONS(STR("$args"), SCALAR(-2))
+		CONS(STR("neg"), STR("neg")),
+		CONS(STR("add"), STR("add")),
+		CONS(STR("sub"), STR("sub")),
+		CONS(STR("print"), STR("print")),
+		CONS(STR("eq"), STR("eq")),
+		CONS(STR("lt"), STR("lt")),
+		CONS(STR("quote"), STR("quote")),
+		CONS(STR("eval"), STR("eval")),
+		CONS(STR("scope"), STR("scope")),
+		CONS(STR("cons"), STR("cons")),
+		CONS(STR("lhs"), STR("lhs")),
+		CONS(STR("rhs"), STR("rhs")),
+		CONS(STR("let"), STR("let")),
+		CONS(STR("letrec"), STR("letrec")),
+		CONS(STR("if"), STR("if")),
+		CONS(STR("lst"), SCALAR(-2001)),
+		CONS(STR("$parent"), SCALAR(-2001)),
+		CONS(STR("nth"), SCALAR(-2001)),
+		CONS(STR("$args"), SCALAR(-2002))
 	);
 
-	lvalue* func = LIST(
-		STR("cons"),
-		LIST(STR("scope")),
-		LIST(
-			STR("cons"),
-			LIST(STR("quote"), LIST(STR("add"), SCALAR(1), LIST(STR("lhs"), STR("$args")))),
-			nil
-		)
-	);
+	// char* code = "((cons (scope) (quote ((add (lhs $args) 1)))) 5)";
+	// char* code = "(let list (cons (scope) (quote ((cons quote (cons $args nil))))) (list 1 2 3))";
+	// char* code = "(let list (cons (scope) (quote ((quote quote)))) ((list) (1 2 3)))";
+	// char* code = "(add 1 1)";
+	// char* code = "((eval (eval add (scope)) (scope)) 5 5)";
+	// char* code = "(let add (cons (scope) (quote ((add (lhs $args) 1)))) (add 1))";
 
-	lvalue* code = LIST(func, SCALAR(3));
+	FILE* file = fopen("list_tools.lel", "r");
+	char buf[4096];
+	buf[fread(&buf, 1, sizeof(buf), file)] = 0;
+	fclose(file);
 
-	print_lvalue(code, builtins), printf("\n");
-	lvalue* v = eval(code, builtins);
-	print_lvalue(v, builtins), printf("\n");
+	printf("--text--\n%s\n--------\n", buf);
+
+	char** tokens = tokenize(buf);
+
+	// for(int i=0; tokens[i]!=NULL; i++) printf("%i: '%s'\n", i, tokens[i]);
+
+	lvalue* obj = parse(tokens);
+
+	printf("Code: "), print_lvalue(obj, builtins), printf("\n");
+
+	lvalue* res = eval(obj, builtins);
+
+	printf("Result: "), print_lvalue(res, builtins), printf("\n");
+
 	return 0;
 }

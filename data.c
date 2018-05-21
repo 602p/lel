@@ -112,7 +112,7 @@ lvalue_result assoclist_rev_get(lvalue* list, lvalue* key){
 			if(lvalue_eq(head->v.cons.rhs, key)){
 				return SUCCEED(head->v.cons.lhs);
 			}else{
-				return assoclist_get(list->v.cons.rhs, key);
+				return assoclist_rev_get(list->v.cons.rhs, key);
 			}
 		}
 	}
