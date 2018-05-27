@@ -1,0 +1,15 @@
+(let len
+	(let captured-scope (scope)
+	(let func-code (quote (quote (cons quote (cons
+		(let lst (eval (lhs $args) $parent)
+			(if (eq lst ()) 0 (add 1 (len (rhs lst))))
+		)
+	()))))
+	(let quoted-captured-scope (cons quote (cons captured-scope ()))
+	(let env-with-args (cons cons (cons (quote (cons (quote $args) $args)) (cons quoted-captured-scope ())))
+	(let rec-env (cons cons (cons (quote (cons (quote len) len)) (cons quoted-captured-scope ())))
+	(let complete-env (cons cons (cons (quote (cons (quote $parent) (scope))) (cons rec-env ())))
+	(let fn-body (cons eval (cons func-code (cons complete-env ())))
+		(cons hyperquote (cons fn-body ())))))))))
+	
+(let some-list (quote (1 2 3 4 5)) (len some-list)))
