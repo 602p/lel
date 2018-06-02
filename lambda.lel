@@ -1,0 +1,11 @@
+(builtin:let lambda1
+	(builtin:mk_func (builtin:quote lambda) 1 (builtin:get_scope) (builtin:quote
+		(builtin:let name (builtin:lhs builtin:args)
+			(builtin:let body (builtin:lhs (builtin:rhs builtin:args))
+				(builtin:mk_func (builtin:quote <lambda>) () builtin:parent_scope
+					(builtin:cons (builtin:quote builtin:let)
+						(builtin:cons name
+							(builtin:cons (builtin:quote (builtin:lhs builtin:args))
+								(builtin:cons body ())))))))))
+	(builtin:let add (builtin:let + builtin:+ (lambda1 x (lambda1 y (+ x y))))
+		(add 1)))

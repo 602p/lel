@@ -1,2 +1,46 @@
-(let add1 (builtin:mk_func test () (builtin:get_scope) (builtin:+ (builtin:lhs builtin:args) 1))
-	(add1 1))
+(builtin:let rawfunc
+	(builtin:mk_func (builtin:quote rawfunc) 1 (builtin:get_scope) (builtin:quote
+		(builtin:let is_macro (builtin:lhs builtin:args)
+			(builtin:let name (builtin:lhs (builtin:rhs builtin:args)) 
+				(builtin:let body (builtin:lhs (builtin:rhs (builtin:rhs builtin:args)))
+					(builtin:mk_func name is_macro builtin:parent_scope body))))))
+(builtin:letrec nth (rawfunc () nth
+	(builtin:let lst (builtin:lhs builtin:args)
+		(builtin:let i (builtin:lhs (builtin:rhs builtin:args))
+			(builtin:if (builtin:eq i 0) 
+				(builtin:lhs lst)
+				(nth (builtin:rhs lst) (builtin:- i 1))))))
+(builtin:let lambda1_named (rawfunc 1 lambda1_named
+	(builtin:mk_func (nth builtin:args 0) () builtin:parent_scope
+		(builtin:cons (builtin:quote builtin:let)
+			(builtin:cons (nth builtin:args 1)
+				(builtin:cons (builtin:quote (builtin:lhs builtin:args))
+					(builtin:cons (nth builtin:args 2) ()))))))
+(builtin:let list (rawfunc () list builtin:args)
+(builtin:let apply (rawfunc () apply 
+	(builtin:eval (builtin:cons (nth builtin:args 1) (nth builtin:args 2)) (nth builtin:args 0)))
+(builtin:let lambda1 (rawfunc 1 lambda1
+	(apply builtin:parent_scope lambda1_named (builtin:cons (builtin:quote <lambda>) builtin:args)))
+(builtin:letrec _lambda_named_mk_bindings (rawfunc () _lambda_named_mk_bindings
+	(builtin:let code (nth builtin:args 0)
+		(builtin:let bindings (nth builtin:args 1)
+			(builtin:let number (nth builtin:args 2)
+				(builtin:if (builtin:eq bindings ()) code
+						(builtin:cons (builtin:quote builtin:let)
+							(builtin:cons (nth bindings 0)
+								(builtin:cons (builtin:cons (builtin:quote nth)
+										(builtin:cons (builtin:quote builtin:args)
+											(builtin:cons number ())))
+									(builtin:cons
+										(_lambda_named_mk_bindings code 
+											(builtin:rhs bindings) (builtin:+ number 1))
+										())))))))))
+(builtin:let lambda_named (rawfunc 1 lambda_named
+	(builtin:mk_func (nth builtin:args 0) () builtin:parent_scope
+		(_lambda_named_mk_bindings (nth builtin:args 2) (nth builtin:args 1) 0)))
+(builtin:let lambda (rawfunc 1 lambda
+	(apply builtin:parent_scope lambda_named (builtin:cons (builtin:quote <lambda>) builtin:args)))
+
+((builtin:let + builtin:+ (lambda (x) (+ x 1))) 1)
+
+)))))))))

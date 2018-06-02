@@ -1,0 +1,6 @@
+(builtin:let add 
+	(builtin:mk_func (builtin:quote add2) () (builtin:get_scope) 
+		(builtin:quote (builtin:let arg1 (builtin:lhs builtin:args)
+			(builtin:mk_func (builtin:quote add1) () (builtin:get_scope) 
+				(builtin:quote (builtin:+ arg1 (builtin:lhs builtin:args)))))))
+	((add 1) 5))

@@ -5,11 +5,20 @@ bool is_list(lvalue* v){
 }
 
 void print_lvalue(lvalue* lv){
+	if(lv==lv_builtins) printf("{lv_builtins}");
 	if(lv->type == TY_INT) printf("%i", lv->v.integer);
 	else if(lv->type == TY_SYM){
 		printf("%s", lv->v.ptr);
 	}else if(lv->type == TY_CODE){
-		printf("{function %s}", lv->v.func.name);
+		printf("{%sfunction %s ", lv->v.func.macro?"macro-":"", lv->v.func.name);
+		if(lv->v.func.builtin){
+			printf("{builtin}");
+		}else{
+			print_lvalue(lv->v.func.code.interpreted.code);
+			// printf(", closure: ");
+			// print_lvalue(lv->v.func.code.interpreted.closure);
+		}
+		printf("}");
 	}else{
 		if(is_list(lv)){
 			printf("(");
@@ -19,6 +28,11 @@ void print_lvalue(lvalue* lv){
 					printf(" ");
 				}
 				lv=lv->v.pair.rhs;
+
+				if(lv==lv_builtins){
+					printf("...{lv_builtins}");
+					break;
+				}
 			}
 			printf(")");
 		}else{
@@ -44,7 +58,7 @@ void println_lvalue(lvalue* lv){
 lvalue_result eval(lvalue* code, lvalue* scope){
 	// puts("eval: ");
 	// println_lvalue(code);
-	if(code->type==TY_INT) return LVR_SUCCEED(code);
+	if(code->type==TY_INT || code->type==TY_CODE) return LVR_SUCCEED(code);
 	if(code->type==TY_SYM) return assoclist_lookup(scope, code);
 
 	lvalue_result temp;
@@ -67,10 +81,11 @@ lvalue_result eval(lvalue* code, lvalue* scope){
 	if(func->v.func.builtin){
 		return LVR_SUCCEED(func->v.func.code.builtin(passed_args, scope));
 	}else{
-		return eval(func->v.func.code.interpreted.code,
+		REQUIRE_TO(result, eval(func->v.func.code.interpreted.code,
 			mk_cons(mk_cons(mk_sym("builtin:args"), passed_args),
 			mk_cons(mk_cons(mk_sym("builtin:parent_scope"), scope),
 					func->v.func.code.interpreted.closure))
-			);
+			), "func-call-error");
+		return LVR_SUCCEED(result);
 	}
 }

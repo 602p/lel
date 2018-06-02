@@ -18,13 +18,16 @@ int main(){
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:+", false, builtin_add);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:-", false, builtin_sub);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:let", true, builtin_let);
-	lv_builtins = al_add_builtin(lv_builtins, "builtin:mk_func", true, builtin_mk_func);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:letrec", true, builtin_letrec);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:mk_func", false, builtin_mk_func);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:get_scope", false, builtin_get_scope);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:quote", true, builtin_quote);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:cons", false, builtin_cons);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:eval", false, builtin_eval);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:lhs", false, builtin_lhs);
 	lv_builtins = al_add_builtin(lv_builtins, "builtin:rhs", false, builtin_rhs);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:if", true, builtin_if);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:eq", false, builtin_eq);
 
 	FILE* file = fopen("test.lel", "r");
 	char buf[4096];
