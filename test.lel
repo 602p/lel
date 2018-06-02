@@ -1,1 +1,2 @@
-((builtin:mk_func test () (builtin:get_scope) (builtin:+ (builtin:lhs builtin:args) 1)) 1)
+(let add1 (builtin:mk_func test () (builtin:get_scope) (builtin:+ (builtin:lhs builtin:args) 1))
+	(add1 1))
