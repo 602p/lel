@@ -10,7 +10,7 @@ typedef enum {
 	TY_STRING = 5
 } lvalue_type;
 
-typedef struct lvalue* builtin_fn(struct lvalue*);
+typedef struct lvalue* builtin_fn(struct lvalue*, struct lvalue*);
 
 typedef struct lvalue {
 	lvalue_type type;
@@ -22,6 +22,7 @@ typedef struct lvalue {
 		} pair;
 		char* ptr;
 		struct {
+			char* name; //GC?
 			bool macro;
 			bool builtin;
 			union {
@@ -51,8 +52,12 @@ bool lv_is_true(lvalue* v);
 lvalue* mk_int(int v);
 lvalue* mk_cons(lvalue* l, lvalue* r);
 lvalue* mk_sym(char* sym);
-lvalue* mk_builtin(bool macro, builtin_fn* func);
+lvalue* mk_builtin(char* name, bool macro, builtin_fn* func);
+lvalue* mk_closure(char* name, bool macro, lvalue* code, lvalue* closure);
+
+lvalue* lvlist_append(lvalue* list, lvalue* v);
 
 bool lv_equal(lvalue* a, lvalue* b);
 lvalue_result assoclist_lookup(lvalue* list, lvalue* key);
-lvalue_result list_get(lvalue* list, int i);
+lvalue_result lvlist_get(lvalue* list, int i);
+int lvlist_len(lvalue* list);

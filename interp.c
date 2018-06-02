@@ -8,6 +8,8 @@ void print_lvalue(lvalue* lv){
 	if(lv->type == TY_INT) printf("%i", lv->v.integer);
 	else if(lv->type == TY_SYM){
 		printf("%s", lv->v.ptr);
+	}else if(lv->type == TY_CODE){
+		printf("{function %s}", lv->v.func.name);
 	}else{
 		if(is_list(lv)){
 			printf("(");
@@ -40,6 +42,8 @@ void println_lvalue(lvalue* lv){
 	lvalue* name = temp.result;
 
 lvalue_result eval(lvalue* code, lvalue* scope){
+	// puts("eval: ");
+	// println_lvalue(code);
 	if(code->type==TY_INT) return LVR_SUCCEED(code);
 	if(code->type==TY_SYM) return assoclist_lookup(scope, code);
 
@@ -52,17 +56,21 @@ lvalue_result eval(lvalue* code, lvalue* scope){
 	lvalue* args = code->v.pair.rhs;
 	lvalue* passed_args = args;
 	if(!func->v.func.macro){
-		lvalue* passed_args = lv_nil;
+		passed_args = lv_nil;
 		while(args!=lv_nil){
 			REQUIRE_TO(arg, eval(args->v.pair.lhs, scope), "arg-error");
-			passed_args = mk_cons(arg, passed_args);
+			passed_args = lvlist_append(passed_args, arg);
 			args = args->v.pair.rhs;
 		}
 	}
 
 	if(func->v.func.builtin){
-		return LVR_SUCCEED(func->v.func.code.builtin(passed_args));
+		return LVR_SUCCEED(func->v.func.code.builtin(passed_args, scope));
 	}else{
-		return LVR_FAILURE_I(mk_sym("not-implemented"));
+		return eval(func->v.func.code.interpreted.code,
+			mk_cons(mk_cons(mk_sym("builtin:args"), passed_args),
+			mk_cons(mk_cons(mk_sym("builtin:parent_scope"), scope),
+					func->v.func.code.interpreted.closure))
+			);
 	}
 }

@@ -9,13 +9,22 @@ lvalue* lv_builtins;
 
 lvalue* al_add_builtin(lvalue* list, char* name, bool macro, builtin_fn* func){
 	lvalue* sym = mk_sym(name);
-	return mk_cons(mk_cons(sym, mk_builtin(macro, func)), list);
+	return mk_cons(mk_cons(sym, mk_builtin(name, macro, func)), list);
 }
 
 int main(){
 	lv_nil = mk_sym("nil");
 	lv_builtins = mk_cons(mk_cons(lv_nil, lv_nil), lv_nil);
-	lv_builtins = al_add_builtin(lv_builtins, "+", false, builtin_add);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:+", false, builtin_add);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:-", false, builtin_sub);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:let", true, builtin_let);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:mk_func", true, builtin_mk_func);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:get_scope", false, builtin_get_scope);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:quote", true, builtin_quote);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:cons", false, builtin_cons);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:eval", false, builtin_eval);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:lhs", false, builtin_lhs);
+	lv_builtins = al_add_builtin(lv_builtins, "builtin:rhs", false, builtin_rhs);
 
 	FILE* file = fopen("test.lel", "r");
 	char buf[4096];
