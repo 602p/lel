@@ -73,14 +73,14 @@ class LSym(LVal, attr.make_class("LSym", ["value"])):
 class LScope:
 	@staticmethod
 	def add_binding(self, k, v):
-		self.lhs=LCons(LCons.from_py_list([LSym(k), LCons(v, LNil)]), self.lhs)
+		self.lhs=LCons(LCons.from_py_list([LSym(k), v, LNil]), self.lhs)
 
 	@staticmethod
 	def get(self, k):
 		self=self.lhs
 		while self!=LNil:
 			if self.lhs.lhs.value==k:
-				return self.lhs.rhs.lhs.lhs
+				return self.lhs.rhs.lhs
 			self=self.rhs
 		raise IndexError()
 
@@ -99,7 +99,7 @@ class LScope:
 		x=self
 		while x!=LNil:
 			if x.lhs.lhs.value==k:
-				x.lhs.rhs.lhs.lhs=v
+				x.lhs.rhs.lhs=v
 				return
 			x=x.rhs
 		raise IndexError((self.l_str(), k, v))
