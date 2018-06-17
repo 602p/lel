@@ -23,16 +23,24 @@ class LCons(LVal, attr.make_class("LList", ["lhs", "rhs"])):
 			r.append(x.lhs)
 			x=x.rhs
 		return r
-		
+
 	def get_nth(self, v):
 		i=0
 		x=self
 		while x!=LNil:
 			if i==v:
-				return x
+				return x.lhs
 			x=x.rhs
 			i+=1
 		raise IndexError()
+
+	def len(self):
+		i=0
+		x=self
+		while x!=LNil:
+			i+=1
+			x=x.rhs
+		return i
 
 	@classmethod
 	def from_py_list(self, l):
@@ -43,6 +51,9 @@ class LCons(LVal, attr.make_class("LList", ["lhs", "rhs"])):
 			for i in reversed(l[:-1]):
 				r=LCons(i, r)
 			return r
+
+	def clone(self):
+		return LCons.from_py_list(self.to_py_list())
 
 LNil = LCons(None, None)
 
@@ -62,25 +73,33 @@ class LSym(LVal, attr.make_class("LSym", ["value"])):
 class LScope:
 	@staticmethod
 	def add_binding(self, k, v):
-		return LCons(LCons.from_py_list([LSym(k), v]), self)
+		self.lhs=LCons(LCons.from_py_list([LSym(k), LCons(v, LNil)]), self.lhs)
 
 	@staticmethod
 	def get(self, k):
-		while self!=Nil:
-			if self.lhs.lhs==k:
-				return self.lhs.rhs.lhs
+		self=self.lhs
+		while self!=LNil:
+			if self.lhs.lhs.value==k:
+				return self.lhs.rhs.lhs.lhs
+			self=self.rhs
 		raise IndexError()
 
 	@staticmethod
 	def contains(self, k):
-		while self!=Nil:
-			if self.lhs.lhs==k:
+		self=self.lhs
+		while self!=LNil:
+			if self.lhs.lhs.value==k:
 				return True
+			self=self.rhs
 		return False
 
 	@staticmethod
 	def set_binding(self, k, v):
-		while self!=LNil:
-			if self.lhs.lhs==k:
-				self.lhs.rhs.lhs=v
-		raise IndexError()
+		self=self.lhs
+		x=self
+		while x!=LNil:
+			if x.lhs.lhs.value==k:
+				x.lhs.rhs.lhs.lhs=v
+				return
+			x=x.rhs
+		raise IndexError((self.l_str(), k, v))
