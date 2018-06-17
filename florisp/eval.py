@@ -49,7 +49,7 @@ def builtin(name, nargs=None, is_fexpr=False, argtypes=None):
 				for idx, v in enumerate(args):
 					if argtypes[idx]:
 						if not isinstance(v, argtypes[idx]):
-							error("Bad arg type to builtin", name)
+							error("Bad arg type to builtin", name, idx, v)
 			return f(args, scope)
 		global builtins
 		LScope.add_binding(builtins, "^"+name, LBuiltin(name, is_fexpr, _wrapped))
@@ -98,7 +98,7 @@ def bi_let(args, scope):
 	LScope.add_binding(child_scope, args[0].value, eval(args[1], scope))
 	return eval(args[2], child_scope)
 
-@builtin("set-in!", 3, is_fexpr=True, argtypes=[LCons, LSym, None])
+@builtin("set-in!", 3, is_fexpr=True, argtypes=[None, LSym, None])
 def bi_set_in(args, scope):
 	the_scope=eval(args[0], scope)
 	the_name=args[1].value
@@ -153,7 +153,11 @@ def bi_if(args, scope):
 
 @builtin("mkfunc", 4, argtypes=[LStr, None, None, LCons])
 def bi_mkfunc(args, scope):
-	return LFunc(args[0].value, args[1].is_nil(), args[2], args[3].clone())
+	return LFunc(args[0].value, not args[1].is_nil(), args[2], args[3].clone())
+
+@builtin("fn1", 2, is_fexpr=True, argtypes=[LSym, None])
+def bi_mkfunc(args, scope):
+	return LFunc("<fn1 lambda>", False, LCons.from_py_list([LSym("^let"), args[0], LCons.from_py_list([LSym("^lhs"), LSym("$args")]), args[1]]), scope)
 
 with open("test.fl", 'r') as fd:
 	code = read(fd.read())

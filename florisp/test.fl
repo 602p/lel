@@ -1,5 +1,9 @@
-(^let x 5
-	(^block
-		(^set-in! (^scope) foo (^mkfunc "foo" () (^quote x) (^scope)))
-		(^unset-in! (^scope) x)
-		(foo)))
+(^block
+	(^set-in! (^scope) set!-code (^quote
+		(^let name (^lhs $args)
+			(^let val (^eval (^lhs (^rhs $args)) $parent)
+				(^eval (^list (^quote ^set-in!) (^quote $parent) name (^quote val)) (^scope))))))
+	(^set-in! (^scope) set! (^mkfunc "set!" 1 set!-code (^scope)))
+	(set! x 11)
+	x
+)
