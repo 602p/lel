@@ -1,9 +1,5 @@
-(^block
-	(^let fib
-		(^let fib-body (^quote (^let x (^lhs $args) (^if (^lt x 3) x (^+ (fib_ (^- x 1)) (fib_ (^- x 2))))))
-			(^let fib_ (^mkfunc "fib" () fib-body (^scope))
-				(^block
-					(^set-in! (^get-func-scope fib_) fib_ fib_)
-					fib_)))
-	(fib 11)
-))
+(^let x 5
+	(^block
+		(^set-in! (^scope) foo (^mkfunc "foo" () (^quote x) (^scope)))
+		(^unset-in! (^scope) x)
+		(foo)))

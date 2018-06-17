@@ -76,6 +76,19 @@ class LScope:
 		self.lhs=LCons(LCons.from_py_list([LSym(k), v, LNil]), self.lhs)
 
 	@staticmethod
+	def del_binding(self, k):
+		l = self.lhs.to_py_list()
+		s=None
+		for v in l:
+			if v.lhs.value==k:
+				s=v
+		if s:
+			l.remove(s)
+			self.lhs=LCons.from_py_list(l)
+		else:
+			raise IndexError()
+
+	@staticmethod
 	def get(self, k):
 		self=self.lhs
 		while self!=LNil:

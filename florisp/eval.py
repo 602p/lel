@@ -109,6 +109,13 @@ def bi_set_in(args, scope):
 	else:
 		LScope.set_binding(the_scope, the_name, the_value)
 
+@builtin("unset-in!", 2, is_fexpr=True, argtypes=[LCons, LSym])
+def bi_unset_in(args, scope):
+	the_scope=eval(args[0], scope)
+	the_name=args[1].value
+	print("unset-in!", the_scope, the_name)
+	LScope.del_binding(the_scope, the_name)
+
 @builtin("cons", 2, argtypes=[None, LCons])
 def bi_cons(args, scope):
 	return LCons(args[0], args[1])
@@ -146,7 +153,7 @@ def bi_if(args, scope):
 
 @builtin("mkfunc", 4, argtypes=[LStr, None, None, LCons])
 def bi_mkfunc(args, scope):
-	return LFunc(args[0].value, args[1].is_nil(), args[2], args[3])
+	return LFunc(args[0].value, args[1].is_nil(), args[2], args[3].clone())
 
 with open("test.fl", 'r') as fd:
 	code = read(fd.read())
