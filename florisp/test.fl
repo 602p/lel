@@ -1,0 +1,1 @@
+((builtin:mkfunc "return_0" () (builtin:quote (builtin:+ (builtin:lhs $args) 1)) ()))
